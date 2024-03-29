@@ -2,6 +2,8 @@
 
 This Script is tested with RDS instacne with postgres db v.16 and higher. I used EC2 with ubuntu latest image to test this.
 
+I have used postgres utilities pg_dump, and pg_restore to backup and restore the databases
+
 # Use below commands to install dependencies.
 sudo apt-get update
 sudo apt-get install wget ca-certificates
