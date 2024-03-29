@@ -279,12 +279,11 @@ def rename_rds(old, new):
                     "aws",
                     "rds",
                     "modify-db-instance",
-                    "----db-instance-identifier",
+                    "--db-instance-identifier",
                     old,
                     "--new-db-instance-identifier",
-                    new
-
-
+                    new,
+                    "--apply-immediately"
                 ],
                 stdout=subprocess.PIPE,
             )
@@ -294,17 +293,38 @@ def rename_rds(old, new):
 
             return output
     except Exception as e:
-        logging.error(f"Issue with renaming f'{old} -> {old}-old ': {e}")
+        logging.error(f"Issue with renaming {old} -> {old}-old : {e}")
         exit(1)
 
 
 def swap_db(old, new):
     logging.info(f'Renaming db: {old} -> {old}-old ')
     rename_rds(old, f'{old}-old')
-    logging.info("Sleeping for 30 sec")
-    time.sleep(30)
+    logging.info("Sleeping for 5 min")
+    time.sleep(300)
     logging.info(f'Renaming db: {new} - > {old}')
     rename_rds(new, old)
+
+def stop_rds(dbinstance):
+    try:
+        process = subprocess.Popen(
+            [
+                "aws",
+                "rds",
+                "stop-db-instance",
+                "--db-instance-identifier",
+                dbinstance 
+            ],
+            stdout=subprocess.PIPE,
+        )
+        output = process.communicate()[0]
+        if int(process.returncode) != 0:
+            logging.error(f"Command failed. Return code : {process.returncode}")
+
+        return output
+    except Exception as e:
+        logging.error(f"Issue with stopping - {dbinstance}")
+        exit(1)
 
 def migrate_rds(dbinstance,new_allocated_storage ):
     host, db, user, password, port = get_db_details(dbinstance)
@@ -314,7 +334,7 @@ def migrate_rds(dbinstance,new_allocated_storage ):
     backup_filename = f'{dbinstance}_dump'
     try:
         backup_postgres_db(
-            host, db, port, user, password, backup_filename, verbose=True
+            host, db, port, user, password, backup_filename, verbose=False
         )
     except Exception as e:
         logging.info(e)
@@ -333,13 +353,15 @@ def migrate_rds(dbinstance,new_allocated_storage ):
     logging.info(f"restoring the new db - {new_rds_DBInstanceIdentifier}")
     try:
         restore_postgres_db(
-            new_db_endpoint, db, port, user, password, backup_filename, verbose=True
+            new_db_endpoint, db, port, user, password, backup_filename, verbose=False
         )
     except Exception as e:
         print(e)
 
     logging.info("Swapping dbs")
     swap_db(dbinstance, new_rds_DBInstanceIdentifier)
+    logging.info(f'Stopping the {dbinstance}-old')
+    stop_rds(f'{dbinstance}-old')
 
 
 
