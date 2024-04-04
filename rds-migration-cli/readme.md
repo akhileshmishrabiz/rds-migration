@@ -22,7 +22,7 @@ Clone the repository to your local machine:
 
 git clone https://github.com/akhileshmishrabiz/rds-migration.git
 
-cd migrtate-with-pg-dump-restore
+cd rds-migration/migrtate-with-pg-dump-restore
 
 # Install the required Python packages:
 pip install -r requirements.txt
