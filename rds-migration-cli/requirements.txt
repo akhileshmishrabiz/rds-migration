@@ -1,4 +1,0 @@
-boto3
-psycopg
-python-dotenv
-
