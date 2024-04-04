@@ -15,11 +15,14 @@ pgsync
 
 # Installation
 Clone the repository to your local machine:
+
 git clone https://github.com/akhileshmishrabiz/rds-migration.git
+
 cd pgsync-rds-migration
 
 # Install the required Python packages:
 pip install -r requirements.txt
+
 Configure AWS CLI with appropriate credentials and permissions.
 
 Usage
@@ -32,6 +35,7 @@ evaluate: Evaluate the status of an RDS database.
 # Example usage:
 
 python main.py migrate my-rds-instance-name 100  # Migrate 'my-rds-instance-name' with a new storage size of 100GB
+
 python main.py evaluate my-rds-instance-name     # Evaluate the status of 'my-rds-instance-name'
 
 # Script Arguments
@@ -48,21 +52,32 @@ This Script is tested with RDS instacne with postgres db v.16 and higher. I used
 I have used postgres utilities pg_dump, and pg_restore to backup and restore the databases
 
 # Use below commands to install dependencies.
+
 sudo apt-get update
+
 sudo apt-get install wget ca-certificates
+
 wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+
 sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
-sudo apt-get install postgresql-client-16 
+
+sudo apt-get install postgresql-client -y
+
 pg_dump --version
 psql --version
 
 # install pip
-apt install python3-pip  # install pip
+
+sudo apt install python3-pip -y # install pip
+
 # install aws cli
+
 sudo apt  install awscli -y # install aws cli
 
 # Install pgsync
-sudo apt-get install ruby-dev libpq-dev build-essential
+
+sudo apt-get install ruby-dev libpq-dev build-essential -y 
+
 sudo gem install pgsync
 
 
