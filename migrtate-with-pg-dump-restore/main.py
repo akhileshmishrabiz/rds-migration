@@ -319,25 +319,14 @@ def swap_db(old, new):
     logging.info(f'Renaming db: {new} - > {old}')
     rename_rds(new, old)
 
-def stop_rds(dbinstance):
+def stop_rds(dbinstance: str) -> None:
     try:
-        process = subprocess.Popen(
-            [
-                "aws",
-                "rds",
-                "stop-db-instance",
-                "--db-instance-identifier",
-                dbinstance 
-            ],
-            stdout=subprocess.PIPE,
+        logging.info(f"Stopping the RDS instance - {dbinstance}")
+        rds.stop_db_instance(
+            DBInstanceIdentifier=dbinstance
         )
-        output = process.communicate()[0]
-        if int(process.returncode) != 0:
-            logging.error(f"Command failed. Return code : {process.returncode}")
-
-        return output
     except Exception as e:
-        logging.error(f"Issue with stopping - {dbinstance}")
+        logging.error(f"Issue with stopping - {dbinstance} -> {e}")
         exit(1)
 
 def migrate_rds(dbinstance,new_allocated_storage ):
