@@ -104,58 +104,72 @@ def get_db_freestorage(DBInstanceIdentifier):
     return round(response["MetricDataResults"][0]["Values"][0] / 1024**3, 2)
 
 
-def duplicate_rds(dbinstance, new_allocated_storage):
+def duplicate_rds(dbinstance: str, new_allocated_storage: int) -> dict:
     source_rds_data = source_rds_instance(dbinstance)
     _, db, user, password, port = get_db_details(dbinstance)
 
-    response = rds.create_db_instance(
-        DBName=db,
-        DBInstanceIdentifier=f"{source_rds_data['DBInstanceIdentifier']}new",
-        AllocatedStorage=new_allocated_storage,
-        DBInstanceClass=source_rds_data["DBInstanceClass"],
-        Engine=source_rds_data["Engine"],
-        MasterUsername=user,
-        MasterUserPassword=password,
-        Port=int(port),
-        DBSecurityGroups=[
+    instance_params = {
+        "DBName": db,
+        "DBInstanceIdentifier": f"{source_rds_data['DBInstanceIdentifier']}new",
+        "AllocatedStorage": new_allocated_storage,
+        "DBInstanceClass": source_rds_data["DBInstanceClass"],
+        "Engine": source_rds_data["Engine"],
+        "MasterUsername": user,
+        "MasterUserPassword": password,
+        "Port": int(port),
+        "DBSecurityGroups": [
             items["DBSecurityGroupName"]
             for items in source_rds_data["DBSecurityGroups"]
         ],
-        VpcSecurityGroupIds=[
+        "VpcSecurityGroupIds": [
             items["VpcSecurityGroupId"]
             for items in source_rds_data["VpcSecurityGroups"]
         ],
-        AvailabilityZone=source_rds_data["AvailabilityZone"],
-        DBSubnetGroupName=source_rds_data["DBSubnetGroup"]["DBSubnetGroupName"],
-        PreferredMaintenanceWindow=source_rds_data["PreferredMaintenanceWindow"],
-        DBParameterGroupName=source_rds_data["DBParameterGroups"][0][
+        "AvailabilityZone": source_rds_data["AvailabilityZone"],
+        "DBSubnetGroupName": source_rds_data["DBSubnetGroup"]["DBSubnetGroupName"],
+        "PreferredMaintenanceWindow": source_rds_data["PreferredMaintenanceWindow"],
+        "DBParameterGroupName": source_rds_data["DBParameterGroups"][0][
             "DBParameterGroupName"
         ],
-        BackupRetentionPeriod=source_rds_data["BackupRetentionPeriod"],
-        PreferredBackupWindow=source_rds_data["PreferredBackupWindow"],
-        MultiAZ=source_rds_data["MultiAZ"],
-        EngineVersion=source_rds_data["EngineVersion"],
-        AutoMinorVersionUpgrade=source_rds_data["AutoMinorVersionUpgrade"],
-        LicenseModel=source_rds_data["LicenseModel"],
-        OptionGroupName=source_rds_data["OptionGroupMemberships"][0]["OptionGroupName"],
-        PubliclyAccessible=source_rds_data["PubliclyAccessible"],
-        Tags=source_rds_data["TagList"],
-        StorageType=source_rds_data["StorageType"],
-        StorageEncrypted=source_rds_data["StorageEncrypted"],
-        KmsKeyId=source_rds_data["KmsKeyId"],
-        CopyTagsToSnapshot=source_rds_data["CopyTagsToSnapshot"],
-        EnableIAMDatabaseAuthentication=source_rds_data[
+        "BackupRetentionPeriod": source_rds_data["BackupRetentionPeriod"],
+        "PreferredBackupWindow": source_rds_data["PreferredBackupWindow"],
+        "MultiAZ": source_rds_data["MultiAZ"],
+        "EngineVersion": source_rds_data["EngineVersion"],
+        "AutoMinorVersionUpgrade": source_rds_data["AutoMinorVersionUpgrade"],
+        "LicenseModel": source_rds_data["LicenseModel"],
+        "OptionGroupName": source_rds_data["OptionGroupMemberships"][0][
+            "OptionGroupName"
+        ],
+        "PubliclyAccessible": source_rds_data["PubliclyAccessible"],
+        "Tags": source_rds_data["TagList"],
+        "StorageType": (
+            "gp3"
+            if source_rds_data["StorageType"] == "gp2"
+            else source_rds_data["StorageType"]
+        ),
+        "StorageEncrypted": source_rds_data["StorageEncrypted"],
+        "KmsKeyId": source_rds_data["KmsKeyId"],
+        "CopyTagsToSnapshot": source_rds_data["CopyTagsToSnapshot"],
+        "EnableIAMDatabaseAuthentication": source_rds_data[
             "IAMDatabaseAuthenticationEnabled"
         ],
-        EnablePerformanceInsights=source_rds_data["PerformanceInsightsEnabled"],
-        DeletionProtection=source_rds_data["DeletionProtection"],
-        MaxAllocatedStorage = source_rds_data["MaxAllocatedStorage"] if 'MaxAllocatedStorage' in source_rds_data else None,
-        EnableCustomerOwnedIp=source_rds_data["CustomerOwnedIpEnabled"],
-        BackupTarget=source_rds_data["BackupTarget"],
-        NetworkType=source_rds_data["NetworkType"],
-        CACertificateIdentifier=source_rds_data["CACertificateIdentifier"],
-    )
+        "EnablePerformanceInsights": source_rds_data["PerformanceInsightsEnabled"],
+        "DeletionProtection": source_rds_data["DeletionProtection"],
+        "EnableCustomerOwnedIp": source_rds_data["CustomerOwnedIpEnabled"],
+        "BackupTarget": source_rds_data["BackupTarget"],
+        "NetworkType": source_rds_data["NetworkType"],
+        "CACertificateIdentifier": source_rds_data["CACertificateIdentifier"],
+    }
 
+    try:
+        if source_rds_data["MaxAllocatedStorage"]:
+            instance_params["MaxAllocatedStorage"] = source_rds_data[
+                "MaxAllocatedStorage"
+            ]
+    except KeyError:
+        pass
+
+    response = rds.create_db_instance(**instance_params)
     return response
 
 
