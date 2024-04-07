@@ -142,11 +142,7 @@ def duplicate_rds(dbinstance: str, new_allocated_storage: int) -> dict:
         ],
         "PubliclyAccessible": source_rds_data["PubliclyAccessible"],
         "Tags": source_rds_data["TagList"],
-        "StorageType": (
-            "gp3"
-            if source_rds_data["StorageType"] == "gp2"
-            else source_rds_data["StorageType"]
-        ),
+        "StorageType": source_rds_data["StorageType"],
         "StorageEncrypted": source_rds_data["StorageEncrypted"],
         "KmsKeyId": source_rds_data["KmsKeyId"],
         "CopyTagsToSnapshot": source_rds_data["CopyTagsToSnapshot"],
